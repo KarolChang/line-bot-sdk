@@ -45,7 +45,7 @@ app.post('/callback', (req, res) => {
 })
 
 // event handler
-function handleEvent(event) {
+async function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     // ignore non-text-message event
     return Promise.resolve(null)
@@ -55,7 +55,7 @@ function handleEvent(event) {
   const echo = { type: 'text', text: event.message.text }
   console.log('event.message', event.message)
   // push message
-  client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
+  await client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
   // use reply API
   return client.replyMessage(event.replyToken, echo)
 }
