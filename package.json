@@ -4,9 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    // "build": "tsc ./src/main.ts",
     "dev": "nodemon ./src/main.js",
-    // "start": "node ./src/main.js",
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
