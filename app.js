@@ -37,14 +37,21 @@ app.post('/callback', line.middleware(config), async (req, res) => {
   }
 })
 
+// bodyParser
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-app.post('/push', async (req, res) => {
-  const message = req.body.message
-  const inputMsg = { type: 'text', text: message }
-  await client.pushMessage(process.env.KAROL_USERID, inputMsg)
-  return res.json({ status: 'success', inputMsg })
+// push message
+app.post('/push/one', async (req, res) => {
+  const { to, messages } = req.body
+  await client.pushMessage(to, messages)
+  return res.json({ status: 'success push one', to, messages })
+})
+
+app.post('/push/many', async (req, res) => {
+  const { to, messages } = req.body
+  await client.multicast(to, messages)
+  return res.json({ status: 'success push many', to, messages })
 })
 
 // event handler
@@ -54,7 +61,7 @@ function handleReply(event) {
     return Promise.resolve(null)
   }
   // create a echoing text message
-  const echo = { type: 'text', text: event.message.text }
+  const echo = { type: 'text', text: `促咪卡比說：${event.message.text}` }
   // use reply API
   client.replyMessage(event.replyToken, echo)
 }
@@ -76,3 +83,6 @@ const port = process.env.PORT
 app.listen(port, () => {
   console.log(`line bot is listening on http://localhost:${port}`)
 })
+
+// 文件
+// https://line.github.io/line-bot-sdk-nodejs/guide/client.html#create-a-client
