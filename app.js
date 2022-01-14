@@ -19,9 +19,6 @@ const client = new line.Client(config)
 // about Express itself: https://expressjs.com/
 const app = express()
 app.use(line.middleware(config))
-// app.get('/', (req, res) => {
-//   res.send('hello')
-// })
 
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
@@ -31,7 +28,7 @@ app.post('/callback', (req, res) => {
   const body = JSON.stringify(req.body)
 
   // 取得 LINE 的簽名
-  const signature = crypto.createHmac('SHA256', channelSecret).update(body).digest('base64')
+  const signature = crypto.createHmac('SHA256', process.env.CHANNEL_SECRET).update(body).digest('base64')
 
   // 取得 headers 中的 X-Line-Signature
   const headerX = req.get('X-Line-Signature')
@@ -57,6 +54,7 @@ function handleEvent(event) {
   // create a echoing text message
   const echo = { type: 'text', text: event.message.text }
   console.log('event.message', event.message)
+  client.pushMessage(userId, { type: 'text', text: '促咪卡比' })
   // use reply API
   return client.replyMessage(event.replyToken, echo)
 }
