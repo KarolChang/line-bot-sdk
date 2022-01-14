@@ -2,7 +2,7 @@ const line = require('@line/bot-sdk')
 const express = require('express')
 const bodyParser = require('body-parser')
 const crypto = require('crypto')
-const cors = require('cors')
+// const cors = require('cors')
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
@@ -39,21 +39,22 @@ app.post('/callback', line.middleware(config), async (req, res) => {
 })
 
 // app use
-app.use(cors())
+// app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 // push message
-app.post('/push/one', async (req, res) => {
+app.post('/push', async (req, res) => {
   const { to, messages } = req.body
-  await client.pushMessage(to, messages)
-  return res.json({ status: 'success push one', to, messages })
-})
-
-app.post('/push/many', async (req, res) => {
-  const { to, messages } = req.body
-  await client.multicast(to, messages)
-  return res.json({ status: 'success push many', to, messages })
+  if (typeof to === 'string') {
+    await client.pushMessage(to, messages)
+    return res.json({ status: 'success push one', to, messages })
+  } else if (to === 'object' && to.length) {
+    await client.multicast(to, messages)
+    return res.json({ status: 'success push many', to, messages })
+  } else {
+    return res.json({ status: 'error', message: 'wrong input!!!' })
+  }
 })
 
 // event handler
