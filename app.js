@@ -36,12 +36,12 @@ app.post('/callback', async (req, res) => {
   // 比對 signature, headers ，二者相等時才代表是由 LINE server 發來的訊息
   if (signature === headerX) {
     try {
+      await handleReply(req.body.events[0])
+      await handlePush()
     } catch (err) {
       console.log('[ERROR]', err)
       res.status(500).end()
     }
-    await handleReply(req.body.events[0])
-    await handlePush()
     // Promise.all(req.body.events.map(handleEvent))
     //   .then((result) => res.json(result))
     //   .catch((err) => {
