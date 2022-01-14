@@ -49,7 +49,7 @@ app.post('/push', async (req, res) => {
   if (typeof to === 'string') {
     await client.pushMessage(to, messages)
     return res.json({ status: 'success push one', to, messages })
-  } else if (to === 'object' && to.length) {
+  } else if (typeof to === 'object' && to.length) {
     await client.multicast(to, messages)
     return res.json({ status: 'success push many', to, messages })
   } else {
