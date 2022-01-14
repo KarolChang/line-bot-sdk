@@ -22,7 +22,7 @@ app.use(line.middleware(config))
 
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
-app.post('/callback', (req, res) => {
+app.post('/callback', async (req, res) => {
   console.log('req.body.events', req.body.events)
   // 給 LINE 的 body 要是 string
   const body = JSON.stringify(req.body)
@@ -35,17 +35,24 @@ app.post('/callback', (req, res) => {
 
   // 比對 signature, headers ，二者相等時才代表是由 LINE server 發來的訊息
   if (signature === headerX) {
-    Promise.all(req.body.events.map(handleEvent))
-      .then((result) => res.json(result))
-      .catch((err) => {
-        console.error(err)
-        res.status(500).end()
-      })
+    try {
+    } catch (err) {
+      console.log('[ERROR]', err)
+      res.status(500).end()
+    }
+    await handleReply(req.body.events[0])
+    await handlePush()
+    // Promise.all(req.body.events.map(handleEvent))
+    //   .then((result) => res.json(result))
+    //   .catch((err) => {
+    //     console.error(err)
+    //     res.status(500).end()
+    //   })
   }
 })
 
 // event handler
-async function handleEvent(event) {
+function handleReply(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     // ignore non-text-message event
     return Promise.resolve(null)
@@ -54,10 +61,12 @@ async function handleEvent(event) {
   // create a echoing text message
   const echo = { type: 'text', text: event.message.text }
   console.log('event.message', event.message)
-  // push message
-  await client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
   // use reply API
-  return client.replyMessage(event.replyToken, echo)
+  client.replyMessage(event.replyToken, echo)
+}
+
+function handlePush() {
+  client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
 }
 
 // error handling
