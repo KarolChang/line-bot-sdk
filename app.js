@@ -2,6 +2,7 @@ const line = require('@line/bot-sdk')
 const express = require('express')
 const bodyParser = require('body-parser')
 const crypto = require('crypto')
+const cors = require('cors')
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
@@ -16,6 +17,7 @@ const config = {
 const client = new line.Client(config)
 // express app
 const app = express()
+app.use(cors())
 
 // webhook
 app.post('/callback', line.middleware(config), async (req, res) => {
