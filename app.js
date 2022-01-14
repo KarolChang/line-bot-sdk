@@ -37,8 +37,8 @@ app.post('/callback', async (req, res) => {
   if (signature === headerX) {
     try {
       // await handleReply(req.body.events[0])
-      // await handlePush()
-      client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
+      await handlePush()
+      await client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比1' })
     } catch (err) {
       console.log('[ERROR]', err)
       res.status(500).end()
@@ -66,9 +66,10 @@ function handleReply(event) {
   client.replyMessage(event.replyToken, echo)
 }
 
-// function handlePush() {
-//   client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
-// }
+function handlePush() {
+  client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
+  return Promise.resolve(null)
+}
 
 // error handling
 // app.use((err, req, res, next) => {
