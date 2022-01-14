@@ -54,7 +54,8 @@ function handleEvent(event) {
   // create a echoing text message
   const echo = { type: 'text', text: event.message.text }
   console.log('event.message', event.message)
-  client.pushMessage(userId, { type: 'text', text: '促咪卡比' })
+  // push message
+  client.pushMessage(process.env.KAROL_USERID, { type: 'text', text: '促咪卡比' })
   // use reply API
   return client.replyMessage(event.replyToken, echo)
 }
