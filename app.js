@@ -17,7 +17,6 @@ const config = {
 const client = new line.Client(config)
 // express app
 const app = express()
-app.use(cors())
 
 // webhook
 app.post('/callback', line.middleware(config), async (req, res) => {
@@ -39,7 +38,8 @@ app.post('/callback', line.middleware(config), async (req, res) => {
   }
 })
 
-// bodyParser
+// app use
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
