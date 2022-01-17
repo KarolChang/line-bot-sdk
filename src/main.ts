@@ -9,7 +9,7 @@ import {
   WebhookEvent
 } from '@line/bot-sdk'
 import * as express from 'express'
-import { Request, Response } from 'express'
+import { Express, Request, Response } from 'express'
 import * as bodyParser from 'body-parser'
 import * as crypto from 'crypto'
 if (process.env.NODE_ENV !== 'production') {
@@ -25,7 +25,7 @@ const config: ClientConfig = {
 // create LINE SDK client
 const client = new Client(config)
 // express app
-const app = express()
+const app: Express = express()
 
 // webhook
 app.post('/callback', middleware(config as MiddlewareConfig), async (req: Request, res: Response) => {
@@ -69,7 +69,7 @@ app.post('/push', async (req, res) => {
   }
 })
 
-// event handler
+// reply function
 function handleReply(event: WebhookEvent) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     // ignore non-text-message event
