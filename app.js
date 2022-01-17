@@ -49,14 +49,11 @@ app.post('/push', async (req, res) => {
   const { to, messages } = req.body
   if (typeof to === 'string') {
     await client.pushMessage(to, messages)
-    console.log('pushMessage')
     return res.json({ status: 'success push one', to, messages })
   } else if (typeof to === 'object' && to.length) {
     await client.multicast(to, messages)
-    console.log('multicast')
     return res.json({ status: 'success push many', to, messages })
   } else {
-    console.log('wrong input')
     return res.json({ status: 'error', message: 'wrong input!!!' })
   }
 })
