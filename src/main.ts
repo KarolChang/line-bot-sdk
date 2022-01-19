@@ -4,17 +4,19 @@ import {
   JSONParseError,
   SignatureValidationFailed,
   ClientConfig,
-  MiddlewareConfig,
-  TextMessage,
-  WebhookEvent
+  MiddlewareConfig
 } from '@line/bot-sdk'
-import * as express from 'express'
-import { Express, Request, Response } from 'express'
+import express from 'express'
+import { Express, Request, Response, NextFunction, ErrorRequestHandler } from 'express'
 import * as bodyParser from 'body-parser'
 import * as crypto from 'crypto'
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
+
+// import utils
+import { handleReply } from './utils/handleReply'
+import { murmur } from './utils/murmur'
 
 // create LINE SDK config from env variables
 const config: ClientConfig = {
@@ -23,7 +25,7 @@ const config: ClientConfig = {
 }
 
 // create LINE SDK client
-const client = new Client(config)
+const client: Client = new Client(config)
 // express app
 const app: Express = express()
 
@@ -42,7 +44,7 @@ app.post('/callback', middleware(config as MiddlewareConfig), async (req: Reques
   // 比對 signature, headers ，二者相等時才代表是由 LINE server 發來的訊息
   if (signature === headerX) {
     try {
-      await handleReply(req.body.events[0])
+      await handleReply(client, req.body.events[0])
     } catch (err) {
       console.log('[ERROR]', err)
       res.status(500).end()
@@ -60,9 +62,11 @@ app.post('/push', async (req, res) => {
   const { to, messages } = req.body
   if (typeof to === 'string') {
     await client.pushMessage(to, messages)
+    murmur(client, messages)
     return res.json({ status: 'success push one', to, messages })
   } else if (typeof to === 'object' && to.length) {
     await client.multicast(to, messages)
+    murmur(client, messages)
     return res.json({ status: 'success push many', to, messages })
   } else {
     return res.json({ status: 'error', message: 'wrong input!!!' })
@@ -70,19 +74,19 @@ app.post('/push', async (req, res) => {
 })
 
 // reply function
-function handleReply(event: WebhookEvent) {
-  if (event.type !== 'message' || event.message.type !== 'text') {
-    // ignore non-text-message event
-    return Promise.resolve(null)
-  }
-  // create a echoing text message
-  const echo: TextMessage = { type: 'text', text: `促咪卡比說：${event.message.text}` }
-  // use reply API
-  client.replyMessage(event.replyToken, echo)
-}
+// function handleReply(event: WebhookEvent) {
+//   if (event.type !== 'message' || event.message.type !== 'text') {
+//     // ignore non-text-message event
+//     return Promise.resolve(null)
+//   }
+//   // create a echoing text message
+//   const echo: TextMessage = { type: 'text', text: `促咪卡比說：${event.message.text}` }
+//   // use reply API
+//   client.replyMessage(event.replyToken, echo)
+// }
 
 // error handling
-app.use((err, req: Request, res: Response, next) => {
+app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof SignatureValidationFailed) {
     res.status(401).send(err.signature)
     return
