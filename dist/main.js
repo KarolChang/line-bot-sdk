@@ -26,6 +26,7 @@ const bot_sdk_1 = require("@line/bot-sdk");
 const express_1 = __importDefault(require("express"));
 const bodyParser = __importStar(require("body-parser"));
 const crypto = __importStar(require("crypto"));
+const cors_1 = __importDefault(require("cors"));
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
@@ -41,6 +42,7 @@ const config = {
 const client = new bot_sdk_1.Client(config);
 // express app
 const app = (0, express_1.default)();
+app.use((0, cors_1.default)());
 // webhook
 app.post('/callback', (0, bot_sdk_1.middleware)(config), async (req, res) => {
     console.log('req.body.events', req.body.events);
@@ -69,33 +71,27 @@ app.post('/callback', (0, bot_sdk_1.middleware)(config), async (req, res) => {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 // push message
-app.post('/push', async (req, res) => {
-    const { to, messages } = req.body;
-    if (typeof to === 'string') {
-        await client.pushMessage(to, messages);
-        (0, murmur_1.murmur)(client, messages);
-        return res.json({ status: 'success push one', to, messages });
+app.post('/push', async (req, res, next) => {
+    try {
+        const { to, messages } = req.body;
+        if (typeof to === 'string') {
+            await client.pushMessage(to, messages);
+            (0, murmur_1.murmur)(client, messages);
+            return res.json({ status: 'success push one', to, messages });
+        }
+        else if (typeof to === 'object' && to.length) {
+            await client.multicast(to, messages);
+            (0, murmur_1.murmur)(client, messages);
+            return res.json({ status: 'success push many', to, messages });
+        }
+        else {
+            return res.json({ status: 'error', message: 'wrong input!!!' });
+        }
     }
-    else if (typeof to === 'object' && to.length) {
-        await client.multicast(to, messages);
-        (0, murmur_1.murmur)(client, messages);
-        return res.json({ status: 'success push many', to, messages });
-    }
-    else {
-        return res.json({ status: 'error', message: 'wrong input!!!' });
+    catch (err) {
+        next(err);
     }
 });
-// reply function
-// function handleReply(event: WebhookEvent) {
-//   if (event.type !== 'message' || event.message.type !== 'text') {
-//     // ignore non-text-message event
-//     return Promise.resolve(null)
-//   }
-//   // create a echoing text message
-//   const echo: TextMessage = { type: 'text', text: `促咪卡比說：${event.message.text}` }
-//   // use reply API
-//   client.replyMessage(event.replyToken, echo)
-// }
 // error handling
 app.use((err, req, res, next) => {
     if (err instanceof bot_sdk_1.SignatureValidationFailed) {

@@ -10,6 +10,7 @@ import express from 'express'
 import { Express, Request, Response, NextFunction, ErrorRequestHandler } from 'express'
 import * as bodyParser from 'body-parser'
 import * as crypto from 'crypto'
+import cors from 'cors'
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
@@ -28,6 +29,7 @@ const config: ClientConfig = {
 const client: Client = new Client(config)
 // express app
 const app: Express = express()
+app.use(cors())
 
 // webhook
 app.post('/callback', middleware(config as MiddlewareConfig), async (req: Request, res: Response) => {
@@ -58,32 +60,24 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 // push message
-app.post('/push', async (req, res) => {
-  const { to, messages } = req.body
-  if (typeof to === 'string') {
-    await client.pushMessage(to, messages)
-    murmur(client, messages)
-    return res.json({ status: 'success push one', to, messages })
-  } else if (typeof to === 'object' && to.length) {
-    await client.multicast(to, messages)
-    murmur(client, messages)
-    return res.json({ status: 'success push many', to, messages })
-  } else {
-    return res.json({ status: 'error', message: 'wrong input!!!' })
+app.post('/push', async (req, res, next) => {
+  try {
+    const { to, messages } = req.body
+    if (typeof to === 'string') {
+      await client.pushMessage(to, messages)
+      murmur(client, messages)
+      return res.json({ status: 'success push one', to, messages })
+    } else if (typeof to === 'object' && to.length) {
+      await client.multicast(to, messages)
+      murmur(client, messages)
+      return res.json({ status: 'success push many', to, messages })
+    } else {
+      return res.json({ status: 'error', message: 'wrong input!!!' })
+    }
+  } catch (err) {
+    next(err)
   }
 })
-
-// reply function
-// function handleReply(event: WebhookEvent) {
-//   if (event.type !== 'message' || event.message.type !== 'text') {
-//     // ignore non-text-message event
-//     return Promise.resolve(null)
-//   }
-//   // create a echoing text message
-//   const echo: TextMessage = { type: 'text', text: `促咪卡比說：${event.message.text}` }
-//   // use reply API
-//   client.replyMessage(event.replyToken, echo)
-// }
 
 // error handling
 app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
