@@ -55,7 +55,6 @@ app.post('/callback', middleware(config as MiddlewareConfig), async (req: Reques
 })
 
 // app use
-// app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 

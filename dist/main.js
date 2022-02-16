@@ -67,7 +67,6 @@ app.post('/callback', (0, bot_sdk_1.middleware)(config), async (req, res) => {
     }
 });
 // app use
-// app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 // push message
